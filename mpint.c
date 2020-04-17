@@ -168,7 +168,7 @@ void init(uint4096 *n,char *str)
 			}
 		
 			uint64_t c = (uint64_t)ch;
-			if(i&15 == 0)
+			if(i%16 == 0)
 				j--;
 			n->word[j]|=c<<k;
 			k=(k+4)&63;
