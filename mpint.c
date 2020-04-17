@@ -80,12 +80,13 @@ int main()
 
 uint4096 get_int(const char *s)
 {
-	char str[1024];
+	char *str = (char*)malloc(1024);
 	uint4096 a;
 	if(s!=NULL)
 		printf("%s",s);
 	scanf("%1024s",str);
 	init(&a,str);
+	free(str);
 	return a;
 }
 void printuint(uint4096 a)
@@ -168,7 +169,7 @@ void init(uint4096 *n,char *str)
 			}
 		
 			uint64_t c = (uint64_t)ch;
-			if(i%16 == 0)
+			if((i&15) == 0)
 				j--;
 			n->word[j]|=c<<k;
 			k=(k+4)&63;
