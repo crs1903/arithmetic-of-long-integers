@@ -29,21 +29,24 @@ uint4096 AND(uint4096 , uint4096 );
 uint4096 OR(uint4096 ,uint4096 );
 uint4096 NOT(uint4096 );
 uint4096 GCD(uint4096 ,uint4096 );
-
+uint4096 INV(uint4096 ,uint4096 );
 
 int main()
 {
 	int i;
-	uint4096 a,b,c,s,m,d,r,x,y,g;
+	uint4096 a,b,c,s,m,d,r,x,y,g,inv;
 	int n;
 
 	a = get_int("Enter the first integer in hex :\n");
 	b = get_int("Enter the second integer in hex :\n");
-	
+	c= get_int("Enter the third integer in hex :\n");
+
 	printf("\n\na\t: ");
 	printuint(a);
 	printf("\n\nb\t: ");
 	printuint(b);
+	printf("\n\nc\t: ");
+	printuint(c);
 	printf("\n\nmult\t: ");
 	m = multi(a,b);
 	printint(m);
@@ -59,17 +62,18 @@ int main()
 	printf("\n\nmod\t: ");
 	r = mod(a,b);
 	printint(r);
-	printf("\n\n");
 	printf("\n\ngcd\t: ");
 	g = GCD(a,b);
 	printint(g);
-	printf("\n\n");
-	
-	c= get_int("Enter the third integer in hex :\n");
-
-	y = square_multiple(a,b,c);
 	printf("\n\n(a^b)%%c\t: ");
+	y = square_multiple(a,b,c);
 	printint(y);
+	if(compare(GCD(a,b),ONE) == 0)
+	{
+		printf("\n\na^-1\t: ");
+		inv = INV(a,b);
+		printint(inv);
+	}
 	printf("\n\n");
 }
 
@@ -78,7 +82,8 @@ uint4096 get_int(const char *s)
 {
 	char str[1024];
 	uint4096 a;
-	printf("%s",s);
+	if(s!=NULL)
+		printf("%s",s);
 	scanf("%1024s",str);
 	init(&a,str);
 	return a;
@@ -163,10 +168,10 @@ void init(uint4096 *n,char *str)
 			}
 		
 			uint64_t c = (uint64_t)ch;
-			if(i%16 == 0)
+			if(i&15 == 0)
 				j--;
 			n->word[j]|=c<<k;
-			k=(k+4)%64;
+			k=(k+4)&63;
 		}
 	}
 	if(flag == 1)
@@ -212,7 +217,7 @@ uint4096 lshift(uint4096 n,int c)
 	if(c == 0)
 		return n;
 	int i,offset = c>>6;
-	c = c%64;
+	c = c&0x3f;
 	uint4096 m = ZERO;
 	uint64_t s = 0;
 	if(c==0)
@@ -229,7 +234,7 @@ uint4096 lshift(uint4096 n,int c)
 			s = n.word[i]>>(64-c);
 			if(i-offset-1 >= 0)
 			m.word[i-offset-1] |= s;
-			s = (n.word[i]%(1UL<<(64-c)))<<c;
+			s = (n.word[i]^(s<<(64-c)))<<c;
 			m.word[i-offset] |= s;
 		}
 	return m;
@@ -239,7 +244,7 @@ uint4096 rshift(uint4096 n,int c)
 	if(c == 0)
 		return n;
 	int i,offset = c>>6;
-	c = c%64;
+	c = c&0x3f;
 	uint4096 m = ZERO;
 	uint64_t s = 0UL;
 	if(c==0)
@@ -255,7 +260,7 @@ uint4096 rshift(uint4096 n,int c)
 		{
 			s = n.word[i]>>c;
 			m.word[i+offset] |= s;
-			s = (n.word[i]%(1UL<<c))<<(64-c);
+			s = (n.word[i]^(s<<c))<<(64-c);
 			if(i+offset+1 < 64)
 			m.word[i+offset+1] |= s;
 		}
@@ -294,7 +299,7 @@ uint4096 multi(uint4096 m, uint4096 n)
 		if((m.word[j]>>k)&1UL == 1UL)
 			mult = mp_sum(mult,n,0);
 		n = lshift(n,1);
-		k = (k+1)%64;
+		k = (k+1)&63;
 		if(k == 0)
 			j--;
 	}
@@ -465,14 +470,15 @@ uint4096 square_multiple(uint4096 a,uint4096 b,uint4096 n)
 {
 	uint4096 s=ONE,m,c;
 	int i,j;
-	unsigned int k = bits(b);
+	unsigned int k = bits(b),offset,t;
 	for(i = k-1; i>=0 ; i--)
 	{
+		offset = 63 - (i>>6);
+		t = i&0x3f;
 		
 		m = multi(s,s);
 		s = mod(m,n);
-		c = rshift(b,i);
-		if(c.word[63]&1UL == 1UL)
+		if((b.word[offset]>>t)&1UL == 1UL)
 		{
 			m = multi(s,a);
 			s = mod(m,n);
@@ -513,4 +519,39 @@ uint4096 GCD(uint4096 a,uint4096 b)
 		b = r;
 	}
 	return a;
+}
+uint4096 INV(uint4096 a,uint4096 p)
+{
+	if(compare(a,ZERO) == 0)
+	{
+		printf("\n\nError : Inverse of ZERO does not exist\n");
+		exit(1);
+	}
+	if(compare(GCD(a,p),ONE) != 0)
+	{
+		printf("\n\nError : Finding Inverse of a non-coprime number is not possible\n");
+		exit(1);	
+	}
+	uint4096 x=a,y=p,t,m,q,r,u[2] = {ONE,ZERO},v[2] = {ZERO,ONE};
+	while(compare(y,ZERO) != 0)
+	{
+		q = mp_div(x,y,&r);
+		
+		m = multi(q,u[1]);
+		t = mp_sum(u[0],m,1);
+		u[0] = u[1];
+		u[1] = t; 
+		
+		m = multi(q,v[1]);
+		t = mp_sum(v[0],m,1);
+		v[0] = v[1];
+		v[1] = t;
+			
+		x=y;
+		y=r;
+	}
+	if(compare(u[0],ZERO)<0)
+		u[0] = mod(mp_sum(u[0],p,0),p);
+	
+	return u[0];
 }
