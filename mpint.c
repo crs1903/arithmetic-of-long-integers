@@ -42,27 +42,27 @@ int main()
 	c= get_int("Enter the third integer in hex :\n");
 
 	printf("\n\na\t: ");
-	printuint(a);
+	printint(a);
 	printf("\n\nb\t: ");
-	printuint(b);
+	printint(b);
 	printf("\n\nc\t: ");
-	printuint(c);
+	printint(c);
 	printf("\n\nmult\t: ");
 	m = multi(a,b);
 	printint(m);
-	printf("\n\nadd\t: ");
+	printf("\n\nadd a b\t: ");
 	s = mp_sum(a,b,0);
 	printint(s);
-	printf("\n\ndiv\t: ");
+	printf("\n\ndiv a b\t: ");
 	d = mp_div(a,b,NULL);
 	printint(d);
-	printf("\n\nsubs\t: ");
+	printf("\n\nsubs a b\t: ");
 	x = mp_sum(a,b,1);
 	printint(x);
-	printf("\n\nmod\t: ");
+	printf("\n\nmod a b\t: ");
 	r = mod(a,b);
 	printint(r);
-	printf("\n\ngcd\t: ");
+	printf("\n\ngcd a b\t: ");
 	g = GCD(a,b);
 	printint(g);
 	printf("\n\n(a^b)%%c\t: ");
@@ -70,7 +70,7 @@ int main()
 	printint(y);
 	if(compare(GCD(a,b),ONE) == 0)
 	{
-		printf("\n\na^-1\t: ");
+		printf("\n\na^-1 b\t: ");
 		inv = INV(a,b);
 		printint(inv);
 	}
@@ -374,16 +374,14 @@ uint4096 mp_div(uint4096 m, uint4096 n,uint4096 *remainder)
 	if(flag == 1 || flag == 2)
 	{
 		for(t=0;t<64;t++)
-		{
 			q.word[t] = ~(q.word[t]);
-			if(flag != 2)
-				r.word[t] = ~(r.word[t]);
-		}
-		q = mp_sum(q,ONE,0);
-		if(flag != 2)	
-			r = mp_sum(r,ONE,0);
-			
-		
+		q = mp_sum(q,ONE,0);	
+	}
+	if(flag == 1 || flag == 3)
+	{
+		for(t=0;t<64;t++)
+			r.word[t] = ~(r.word[t]);
+		r = mp_sum(r,ONE,0);	
 	}
 	if(remainder!=NULL)
 		*remainder=r;
@@ -454,21 +452,25 @@ uint4096 mod(uint4096 m,uint4096 n)
 	if(flag == 1 || flag == 2)
 	{
 		for(t=0;t<64;t++)
-		{
 			q.word[t] = ~(q.word[t]);
-			if(flag != 2)
-				r.word[t] = ~(r.word[t]);
-		}
-		q = mp_sum(q,ONE,0);
-		if(flag != 2)	
-			r = mp_sum(r,ONE,0);
-			
-		
+		q = mp_sum(q,ONE,0);	
+	}
+	if(flag == 1 || flag == 3)
+	{
+		for(t=0;t<64;t++)
+			r.word[t] = ~(r.word[t]);
+		r = mp_sum(r,ONE,0);	
 	}
 	return r;
 }
 uint4096 square_multiple(uint4096 a,uint4096 b,uint4096 n)
 {
+	int flag =0;
+	if(compare(b,ZERO)<0)
+	{
+		printf("\n\nError : Power should be non negative\n");
+		exit(1);
+	}
 	uint4096 s=ONE,m,c;
 	int i,j;
 	unsigned int k = bits(b),offset,t;
@@ -512,6 +514,18 @@ uint4096 NOT(uint4096 a)
 }
 uint4096 GCD(uint4096 a,uint4096 b)
 {
+	if(compare(a,ZERO)<0)
+	{
+		for(int i=0;i<64;i++)
+			a.word[i] = ~(a.word[i]);
+		a = mp_sum(a,ONE,0);
+	}
+	if(compare(b,ZERO)<0)
+	{
+		for(int i=0;i<64;i++)
+			b.word[i] = ~(b.word[i]);
+		b = mp_sum(b,ONE,0);
+	}
 	uint4096 q = ZERO,r = a,x;
 	while(compare(r,ZERO) != 0)
 	{
@@ -533,6 +547,9 @@ uint4096 INV(uint4096 a,uint4096 p)
 		printf("\n\nError : Finding Inverse of a non-coprime number is not possible\n");
 		exit(1);	
 	}
+	a = mod(a,p);
+	if(compare(a,p)<0)
+		a=mp_sum(a,p,0);
 	uint4096 x=a,y=p,t,m,q,r,u[2] = {ONE,ZERO},v[2] = {ZERO,ONE};
 	while(compare(y,ZERO) != 0)
 	{
