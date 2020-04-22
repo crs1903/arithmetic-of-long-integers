@@ -232,7 +232,17 @@ class uint4096
 		uint4096 n = m;
 		*this += n;
 	}
-	
+	uint4096 operator -() const
+	{	
+		int i;
+		if(*this == 0)
+			return *this;
+		uint4096 b=0UL;
+		for(i=0;i<64;i++)
+			b.word[i] = ~word[i];
+		b+=1;
+		return b;	
+	}
 	uint4096 operator - (uint4096 const &n) const
 	{
 		int i,j;
@@ -665,16 +675,14 @@ class uint4096
 		if(flag == 1 || flag == 2)
 		{
 			for(t=0;t<64;t++)
-			{
 				q.word[t] = ~(q.word[t]);
-				if(flag != 2)
-					r.word[t] = ~(r.word[t]);
-			}
-			q = q+1;
-			if(flag != 2)	
-				r = r+1;
-				
-			
+			q = q+1;	
+		}
+		if(flag == 1 || flag == 3)
+		{
+			for(t=0;t<64;t++)
+				r.word[t] = ~(r.word[t]);
+			r = r+1;	
 		}
 		return q;
 	}
@@ -743,16 +751,14 @@ class uint4096
 		if(flag == 1 || flag == 2)
 		{
 			for(t=0;t<64;t++)
-			{
 				q.word[t] = ~(q.word[t]);
-				if(flag != 2)
-					r.word[t] = ~(r.word[t]);
-			}
-			q = q+1;
-			if(flag != 2)	
-				r = r+1;
-				
-			
+			q = q+1;	
+		}
+		if(flag == 1 || flag == 3)
+		{
+			for(t=0;t<64;t++)
+				r.word[t] = ~(r.word[t]);
+			r = r+1;	
 		}
 		*this = q;
 	}
@@ -829,16 +835,14 @@ class uint4096
 		if(flag == 1 || flag == 2)
 		{
 			for(t=0;t<64;t++)
-			{
 				q.word[t] = ~(q.word[t]);
-				if(flag != 2)
-					r.word[t] = ~(r.word[t]);
-			}
-			q+=1;
-			if(flag != 2)	
-				r+=1;
-				
-			
+			q = q+1;	
+		}
+		if(flag == 1 || flag == 3)
+		{
+			for(t=0;t<64;t++)
+				r.word[t] = ~(r.word[t]);
+			r = r+1;	
 		}
 		return r;
 	}
@@ -913,16 +917,14 @@ class uint4096
 		if(flag == 1 || flag == 2)
 		{
 			for(t=0;t<64;t++)
-			{
 				q.word[t] = ~(q.word[t]);
-				if(flag != 2)
-					r.word[t] = ~(r.word[t]);
-			}
-			q+=1;
-			if(flag != 2)	
-				r+=1;
-				
-			
+			q = q+1;	
+		}
+		if(flag == 1 || flag == 3)
+		{
+			for(t=0;t<64;t++)
+				r.word[t] = ~(r.word[t]);
+			r = r+1;	
 		}
 		*this=r;
 	}
@@ -1025,7 +1027,8 @@ class uint4096
 		uint4096 d=b;
 		for(i=0;i<64;i++)
 			word[i] = word[i]^d.word[i];
-	} 	
+	} 
+		
 };
 uint4096 get_int(const char *);
 uint4096 square_multiple(const uint4096 ,const uint4096 ,const uint4096 );
@@ -1043,6 +1046,9 @@ int main()
 
 	cout << "\n\na\t: ";
 	a.printint();
+	cout << "\n\n-a\t: ";
+	s=-a;
+	s.printint();
 	cout << "\n\nb\t: ";
 	b.printint();
 	cout << "\n\nc\t: ";
@@ -1093,6 +1099,11 @@ uint4096 get_int(const char *s)
 }
 uint4096 square_multiple(const uint4096 a,const uint4096 b,const uint4096 n)
 {
+	if(b<0)
+	{
+		printf("\n\nEroor: Positive must be positive\n");
+		exit(1);
+	}
 	uint4096 s=1UL,c=0UL;
 	int i,j;
 	unsigned int k = b.bits();
@@ -1107,6 +1118,10 @@ uint4096 square_multiple(const uint4096 a,const uint4096 b,const uint4096 n)
 }
 uint4096 GCD(uint4096 a,uint4096 b)
 {
+	if(a<0)
+		a=-a;
+	if(b<0)
+		b=-b;
 	uint4096 r = b;
 	while(b != 0)
 	{
