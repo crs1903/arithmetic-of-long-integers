@@ -1101,7 +1101,7 @@ uint4096 square_multiple(const uint4096 a,const uint4096 b,const uint4096 n)
 {
 	if(b<0)
 	{
-		printf("\n\nEroor: Positive must be positive\n");
+		printf("\n\nError: Power must be positive\n");
 		exit(1);
 	}
 	uint4096 s=1UL,c=0UL;
