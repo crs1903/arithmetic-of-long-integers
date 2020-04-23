@@ -42,11 +42,11 @@ int main()
 	c= get_int("Enter the third integer in hex :\n");
 
 	printf("\n\na\t: ");
-	printint(a);
+	printuint(a);
 	printf("\n\nb\t: ");
-	printint(b);
+	printuint(b);
 	printf("\n\nc\t: ");
-	printint(c);
+	printuint(c);
 	printf("\n\nmult\t: ");
 	m = multi(a,b);
 	printint(m);
